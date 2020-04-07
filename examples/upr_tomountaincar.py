@@ -4,7 +4,7 @@ import gym
 from q_learning import QAgent
 import matplotlib.pyplot as plt
 
-upr = UPR(['data/demos.csv', 'data/demos2.csv'])
+upr = UPR(['data_mc/demos.csv', 'data_mc/demos2.csv'])
 
 s_i = np.array([0.4, 0.014])
 r = upr.get_intermediate_reward(s_i)
@@ -16,14 +16,13 @@ Central Code Block.
 # Defining Gym Environment
 env = gym.make("MountainCar-v0").env
 state_size = 10
-agent = QAgent(env, state_size)
+
 reward_function = []
 steps_completed = []
 
-for j in range(100):
+def run_once():
     completed = False
     agent = QAgent(env, state_size)
-    print("Starting over ", str(j))
     for i_episode in range(1000):
         reward_function = []
         upr.reset()
@@ -66,7 +65,15 @@ for j in range(100):
         if completed:
             break
 
-plt.plot(steps_completed)
-plt.ylabel('episodes to completion')
-plt.show()
+def run_multiple(n):
+    for j in range(n):
+        print("Starting over ", str(j))
+        run_once()
+
+    plt.plot(steps_completed)
+    plt.ylabel('episodes to completion')
+    plt.show()
+
+run_once()
+#run_multiple(100)
 env.close()

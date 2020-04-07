@@ -4,12 +4,10 @@ import cv2
 import matplotlib.pyplot as plt
 import math
 import csv
-upr = UPR(['data/18-54-34.csv', 'data/19-15-30.csv', 'data/19-34-32.csv'])
+upr = UPR(['data/18-54-34.csv', 'data/19-34-32.csv'])
 
-observations = []  # Images go here
-image_path = "data/data1"
 reward_function = []
-n =227
+
 file = "data/19-15-30.csv"
 segments = []
 with open(file) as csv_file:

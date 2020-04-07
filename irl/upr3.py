@@ -63,10 +63,12 @@ class UPR:
         stages = []
         samples = self.expert
         for i in range(n):
-                if len(stages)<y[i]:
-                    stages[y[i]].append(samples[i])
-                else:
-                    stages.append([samples[i]])
+            if stages==[]:
+                stages.append([samples[i]])
+            elif len(stages)>y[i]:
+                stages[y[i]].append(samples[i])
+            else:
+                stages.append([samples[i]])
 
         for stage in stages:
             mu_and_sigma = self.get_mean_and_variance(np.array(stage))
