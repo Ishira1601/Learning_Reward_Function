@@ -4,7 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 import math
 import csv
-upr = UPR(['data/18-54-34.csv', 'data/19-34-32.csv'])
+upr = UPR(["data/18-54-34.csv"])
 
 reward_function = []
 
@@ -14,9 +14,9 @@ with open(file) as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     i = 0
     for row in csv_reader:
-        observation = [i, abs(float(row[35])-float(row[36])), float(row[27]),
-                                   abs(float(row[32])-float(row[33])),
-                                   float(row[28])]
+        observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27]),
+                       abs(float(row[32]) - float(row[33])) / 100,
+                       float(row[28])]
         reward_i, segment = upr.get_intermediate_reward(observation)
         print(' pred: ', segment)
         segments.append(segment)

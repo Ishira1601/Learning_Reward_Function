@@ -100,6 +100,7 @@ class UPR:
 
         if segment>0:
             self.reward += reward_i*pow(2, segment-1)
+            # self.reward = reward_i * pow(2, segment - 1)
 
     def clusters_to_segments(self, labels):
         prev_label = None

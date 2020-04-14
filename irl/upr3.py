@@ -22,26 +22,30 @@ class UPR:
         self.get_mean_std_expert()
         # self.to_segment()
         self.the_stages = []
-        self.n_clusters = 3
-        self.stages(self.n_clusters)
+        self.n_clusters = 10
+        self.stages()
         # self.clustering(3)
         self.step_classifier()
+        self.T = 0
 
 
     def get_mean_std_expert(self):
         d = 0
         k = 0
         for file in self.files:
+            i = 0
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
-                i = 0
                 for row in csv_reader:
-                    observation = [k, i, abs(float(row[35])-float(row[36])), float(row[27]),
-                                   abs(float(row[32])-float(row[33])),
+                    print(len(row))
+                    observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27]),
+                                   abs(float(row[32])-float(row[33]))/100,
                                    float(row[28])]
                     d = len(observation)
                     self.demonstrations.append(observation)
                     i += 1
+            if k==0:
+                self.T = i
             k+=1
 
         self.demonstrations = np.array(self.demonstrations)
@@ -97,7 +101,7 @@ class UPR:
             else:
                 continue
         # reward_t = n/summed
-        reward_t = 100 - summed
+        reward_t = 1000 - summed
         return reward_t, segment
 
     def combine_reward(self, reward_i, segment, time):
@@ -126,12 +130,23 @@ class UPR:
         self.clf = SVC()
         self.clf.fit(self.X, self.y)
 
-    def stages(self, n_clusters):
+    def set_cluster_centers(self):
+        i = round(self.T / (2 * self.n_clusters))
+        cluster_centers = []
+        k = 1
+        j = k * i
+        while j<self.T:
+            cluster_centers.append(self.expert[j])
+            k += 2
+            j = k * i
+        return cluster_centers
 
+    def stages(self):
         self.X = self.expert
-        cluster_centers = [self.expert[40], self.expert[120], self.expert[200]]
+        i = round(self.T/(2*self.n_clusters))
+        cluster_centers = self.set_cluster_centers()
         cluster_centers = np.array(cluster_centers)
-        clusters = KMeans(n_clusters=n_clusters, init=cluster_centers).fit(self.X)
+        clusters = KMeans(n_clusters=self.n_clusters, init=cluster_centers).fit(self.X)
         self.y = clusters.labels_
         # clusters = AgglomerativeClustering(n_clusters=n_clusters, )
         # y = clusters.fit_predict(self.X)
