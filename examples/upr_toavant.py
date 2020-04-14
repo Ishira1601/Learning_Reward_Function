@@ -4,19 +4,19 @@ import cv2
 import matplotlib.pyplot as plt
 import math
 import csv
-upr = UPR(["data/18-54-34.csv"])
+upr = UPR(["data/autumn/19-01-52.csv"], n_clusters=3)
 
 reward_function = []
 
-file = "data/19-15-30.csv"
+file = "data/autumn/19-34-32.csv"
 segments = []
 with open(file) as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     i = 0
     for row in csv_reader:
-        observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27]),
-                       abs(float(row[32]) - float(row[33])) / 100,
-                       float(row[28])]
+        observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
+        # ,abs(float(row[32])-float(row[33]))/100,
+        # float(row[28])]
         reward_i, segment = upr.get_intermediate_reward(observation)
         print(' pred: ', segment)
         segments.append(segment)

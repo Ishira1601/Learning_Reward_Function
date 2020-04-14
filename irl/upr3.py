@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings("ignore")
 import math
 class UPR:
-    def __init__(self, files):
+    def __init__(self, files, n_clusters):
         self.files = files
         self.observations = []
         self.segments = []
@@ -22,7 +22,7 @@ class UPR:
         self.get_mean_std_expert()
         # self.to_segment()
         self.the_stages = []
-        self.n_clusters = 10
+        self.n_clusters = n_clusters
         self.stages()
         # self.clustering(3)
         self.step_classifier()
@@ -38,9 +38,9 @@ class UPR:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
                     print(len(row))
-                    observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                                   abs(float(row[32])-float(row[33]))/100,
-                                   float(row[28])]
+                    observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27])]
+                                   # ,abs(float(row[32])-float(row[33]))/100,
+                                   # float(row[28])]
                     d = len(observation)
                     self.demonstrations.append(observation)
                     i += 1
@@ -52,11 +52,11 @@ class UPR:
         self.expert = self.demonstrations[:, 1:d]
         plt.subplot(211)
         plt.plot(self.expert[:, 1], 'b')
-        plt.plot(self.expert[:, 3], 'c')
+        # plt.plot(self.expert[:, 3], 'c')
         plt.ylabel('Transmission Pressure Difference ')
         plt.subplot(212)
         plt.plot(self.expert[:, 2], 'r')
-        plt.plot(self.expert[:, 4], 'm')
+        # plt.plot(self.expert[:, 4], 'm')
         plt.ylabel('Telescope Pressure')
         plt.xlabel('time')
         plt.show()
