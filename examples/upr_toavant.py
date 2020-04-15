@@ -4,7 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 import math
 import csv
-upr = UPR(["data/autumn/19-01-52.csv"], n_clusters=3)
+upr = UPR(["data/autumn/19-01-52.csv", "data/autumn/19-15-30.csv", "data/winter/14-31-37.csv", "data/winter/14-32-16.csv"], n_clusters=3)
 
 reward_function = []
 
