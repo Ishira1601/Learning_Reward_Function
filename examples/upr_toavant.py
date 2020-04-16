@@ -53,11 +53,13 @@ def one_file(upr, file):
     plt.plot(segments)
     plt.ylabel("segment")
     plt.xlabel('time')
+    plt.title(file)
     plt.show()
 
     plt.plot(reward_function)
     plt.ylabel('reward')
     plt.xlabel('time')
+    plt.title(file)
     plt.show()
 
 def test(upr, files):
@@ -68,7 +70,7 @@ def test(upr, files):
 file_paths = get_file_paths(["data/autumn", "data/winter"])
 X_train, X_test = training_test_split(file_paths)
 # upr = UPR(["data/autumn/19-01-52.csv", "data/autumn/19-15-30.csv", "data/winter/14-31-37.csv", "data/winter/14-32-16.csv"], n_clusters=8)
-upr = UPR(X_train, n_clusters=4)
+upr = UPR(X_train, n_clusters=3)
 # file = "data/autumn/19-34-32.csv"
 # one_file(upr, file)
 

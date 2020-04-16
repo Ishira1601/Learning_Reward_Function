@@ -30,19 +30,22 @@ class UPR:
 
 
     def get_mean_std_expert(self):
-        d = 0
+        d = 4
         k = 0
         for file in self.files:
             i = 0
             with open(file) as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=',')
-                for row in csv_reader:
-                    observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27])]
-                                   # ,abs(float(row[32])-float(row[33]))/100,
-                                   # float(row[28])]
-                    d = len(observation)
-                    self.demonstrations.append(observation)
-                    i += 1
+                row_count = sum(1 for line in csv_file)
+                print(row_count)
+            if (row_count > 200 and row_count < 400):
+                with open(file) as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter=',')
+                    for row in csv_reader:
+                        observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27])]
+                                       # ,abs(float(row[32])-float(row[33]))/100,
+                                       # float(row[28])]
+                        self.demonstrations.append(observation)
+                        i += 1
             if k==0:
                 self.T = i
             k+=1
