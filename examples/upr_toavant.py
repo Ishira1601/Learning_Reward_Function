@@ -4,38 +4,75 @@ import cv2
 import matplotlib.pyplot as plt
 import math
 import csv
-upr = UPR(["data/autumn/19-01-52.csv", "data/autumn/19-15-30.csv", "data/winter/14-31-37.csv", "data/winter/14-32-16.csv"], n_clusters=3)
 
-reward_function = []
+def get_file_paths(folders):
+    from os import listdir
+    from os.path import isfile, join
 
-file = "data/autumn/19-34-32.csv"
-segments = []
-with open(file) as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=',')
-    i = 0
-    for row in csv_reader:
-        observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
-        # ,abs(float(row[32])-float(row[33]))/100,
-        # float(row[28])]
-        reward_i, segment = upr.get_intermediate_reward(observation)
-        print(' pred: ', segment)
-        segments.append(segment)
-        print("intermediate reward: ", reward_i)
-        upr.combine_reward(reward_i, segment, i)
-        reward = upr.reward
-        print('step: ', i)
-        print('reward: ', reward)
-        reward_function.append(reward)
-        i+=1
+    file_paths = []
+    for folder in folders:
+        onlyfiles = [folder+"/"+f for f in listdir(folder) if isfile(join(folder, f))]
+        file_paths += onlyfiles
+    return file_paths
 
-plt.plot(segments)
-plt.ylabel("segment")
-plt.xlabel('time')
-plt.show()
+def training_test_split(X):
+    from random import random
+    from random import seed
+    X_train = []
+    X_test = []
+    seed(16)
+    for x in X:
+        r = random()
+        if r<0.8:
+            X_train.append(x)
+        else:
+            X_test.append(x)
+    return  X_train, X_test
 
-plt.plot(reward_function)
-plt.ylabel('reward')
-plt.xlabel('time')
-plt.show()
+def one_file(upr, file):
+    segments = []
+    reward_function = []
+    with open(file) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        i = 0
+        for row in csv_reader:
+            observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
+            # ,abs(float(row[32])-float(row[33]))/100,
+            # float(row[28])]
+            reward_i, segment = upr.get_intermediate_reward(observation)
+            print(' pred: ', segment)
+            segments.append(segment)
+            print("intermediate reward: ", reward_i)
+            upr.combine_reward(reward_i, segment, i)
+            reward = upr.reward
+            print('step: ', i)
+            print('reward: ', reward)
+            reward_function.append(reward)
+            i += 1
+
+    plt.plot(segments)
+    plt.ylabel("segment")
+    plt.xlabel('time')
+    plt.show()
+
+    plt.plot(reward_function)
+    plt.ylabel('reward')
+    plt.xlabel('time')
+    plt.show()
+
+def test(upr, files):
+    for file in files:
+        upr.reset()
+        one_file(upr, file)
+
+file_paths = get_file_paths(["data/autumn", "data/winter"])
+X_train, X_test = training_test_split(file_paths)
+# upr = UPR(["data/autumn/19-01-52.csv", "data/autumn/19-15-30.csv", "data/winter/14-31-37.csv", "data/winter/14-32-16.csv"], n_clusters=8)
+upr = UPR(X_train, n_clusters=4)
+# file = "data/autumn/19-34-32.csv"
+# one_file(upr, file)
+
+test(upr, X_test)
+
 
 

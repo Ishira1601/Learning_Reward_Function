@@ -37,7 +37,6 @@ class UPR:
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
-                    print(len(row))
                     observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27])]
                                    # ,abs(float(row[32])-float(row[33]))/100,
                                    # float(row[28])]
