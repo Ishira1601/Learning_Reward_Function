@@ -14,4 +14,5 @@ ii. Uncomment `run_multiple(100)` line 78 where 100 could be changed to n
 2. Edit line 73 in examples/upr_toavant and add folders containing 
    demonstration CSVs and set number of segments/clusters
 3. Run `python3.6 examples/upr_toavant.py`
+
 _Note: To Test one file - Uncomment and edit lines 78-80_
