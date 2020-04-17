@@ -74,7 +74,6 @@ file_paths = get_file_paths(["data/autumn", "data/winter"])
 X_train, X_test = training_test_split(file_paths)
 upr = UPR(X_train, n_clusters=3)
 test(upr, X_test)
-
 # upr = UPR(["data/autumn/19-01-52.csv", "data/autumn/19-15-30.csv", "data/winter/14-31-37.csv", "data/winter/14-32-16.csv"], n_clusters=8)
 # file = "data/autumn/19-34-32.csv"
 # one_file(upr, file)

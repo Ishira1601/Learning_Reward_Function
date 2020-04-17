@@ -11,32 +11,26 @@ import math
 class UPR:
     def __init__(self, files, n_clusters):
         self.files = files
-        self.observations = []
-        self.segments = []
-        self.expert_segments = []
         self.reward = 0
         self.demonstrations = []
         self.expert = []
         self.y = []
         self.X = []
-        self.get_mean_std_expert()
-        # self.to_segment()
+        self.load_data()
         self.the_stages = []
         self.n_clusters = n_clusters
         self.stages()
-        # self.clustering(3)
         self.step_classifier()
         self.T = 0
 
 
-    def get_mean_std_expert(self):
+    def load_data(self):
         d = 4
         k = 0
         for file in self.files:
             i = 0
             with open(file) as csv_file:
                 row_count = sum(1 for line in csv_file)
-                print(row_count)
             if (row_count > 200 and row_count < 400):
                 with open(file) as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -63,6 +57,28 @@ class UPR:
         plt.xlabel('time')
         plt.show()
 
+    def stages(self):
+        self.X = self.expert
+        i = round(self.T/(2*self.n_clusters))
+        cluster_centers = self.set_cluster_centers()
+        cluster_centers = np.array(cluster_centers)
+        clusters = KMeans(n_clusters=self.n_clusters, init=cluster_centers).fit(self.X)
+        self.y = clusters.labels_
+        plt.plot(self.y)
+        plt.show()
+        self.to_stages(self.y)
+
+    def set_cluster_centers(self):
+        i = round(self.T / (2 * self.n_clusters))
+        cluster_centers = []
+        k = 1
+        j = k * i
+        while j<self.T:
+            cluster_centers.append(self.expert[j])
+            k += 2
+            j = k * i
+        return cluster_centers
+
 
     def to_stages(self, y):
         n= len(y)
@@ -81,13 +97,17 @@ class UPR:
             self.the_stages.append(mu_and_sigma)
         self.the_stages = np.array(self.the_stages)
 
-    def reset(self):
-        self.reward = 0
-
     def get_mean_and_variance(self, x):
         mu_x = np.mean(x, axis=0)
         sigma_x = np.std(x, axis=0)
         return np.array([mu_x, sigma_x])
+
+    def reset(self):
+        self.reward = 0
+
+    def step_classifier(self):
+        self.clf = SVC()
+        self.clf.fit(self.X, self.y)
 
     def get_intermediate_reward(self, state):
         n = len(state)-1
@@ -103,56 +123,16 @@ class UPR:
             else:
                 continue
         # reward_t = n/summed
-        reward_t = 1000 - summed
+        reward_t = 10 - summed
         return reward_t, segment
 
     def combine_reward(self, reward_i, segment, time):
-        if (time>300):
-            self.reward -= time*100
+        # if (time>300):
+        #     self.reward -= time*100
 
         if segment>0:
             self.reward += reward_i*pow(2, segment-1)
 
-    def clusters_to_segments(self, labels):
-        prev_label = None
-        i =0
-        n_demo = 0
-        for label in labels:
-            if self.demonstrations[i][0] != n_demo:
-                i = 0
 
-            if prev_label==None:
-               prev_label = label
-            elif label != prev_label:
-                i +=1
-                prev_label = label
-            self.y.append(i)
 
-    def step_classifier(self):
-        self.clf = SVC()
-        self.clf.fit(self.X, self.y)
 
-    def set_cluster_centers(self):
-        i = round(self.T / (2 * self.n_clusters))
-        cluster_centers = []
-        k = 1
-        j = k * i
-        while j<self.T:
-            cluster_centers.append(self.expert[j])
-            k += 2
-            j = k * i
-        return cluster_centers
-
-    def stages(self):
-        self.X = self.expert
-        i = round(self.T/(2*self.n_clusters))
-        cluster_centers = self.set_cluster_centers()
-        cluster_centers = np.array(cluster_centers)
-        clusters = KMeans(n_clusters=self.n_clusters, init=cluster_centers).fit(self.X)
-        self.y = clusters.labels_
-        # clusters = AgglomerativeClustering(n_clusters=n_clusters, )
-        # y = clusters.fit_predict(self.X)
-        # self.clusters_to_segments(y)
-        plt.plot(self.y)
-        plt.show()
-        self.to_stages(self.y)
