@@ -1,10 +1,10 @@
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import AgglomerativeClustering
+
 from sklearn.cluster import KMeans
 from sklearn.svm import SVC
-from sklearn.datasets import make_moons, make_circles, make_classification
+from sklearn.neighbors import KNeighborsClassifier
 import warnings
 warnings.filterwarnings("ignore")
 import math
@@ -25,41 +25,51 @@ class UPR:
 
 
     def load_data(self):
-        d = 4
+        d = 0
         k = 0
         for file in self.files:
             i = 0
+            # with open(file) as csv_file:
+            #     row_count = sum(1 for line in csv_file)
+            # if (row_count > 200 and row_count < 400):
             with open(file) as csv_file:
-                row_count = sum(1 for line in csv_file)
-            if (row_count > 200 and row_count < 400):
-                with open(file) as csv_file:
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-                    for row in csv_reader:
-                        observation = [k, i, abs(float(row[35])-float(row[36]))/100, float(row[27])]
-                                       # ,abs(float(row[32])-float(row[33]))/100,
-                                       # float(row[28])]
-                        self.demonstrations.append(observation)
-                        i += 1
+                csv_reader = csv.reader(csv_file, delimiter=',')
+                for row in csv_reader:
+                    observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
+                                  float(row[71]), float(row[72])] #, float(row[62]), float(row[74])]
+                    # observation = [k, i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
+                    d = len(observation)
+                    self.demonstrations.append(observation)
+                    i += 1
             if k==0:
                 self.T = i
             k+=1
 
         self.demonstrations = np.array(self.demonstrations)
         self.expert = self.demonstrations[:, 1:d]
-        plt.subplot(211)
-        plt.plot(self.expert[:, 1], 'b')
-        # plt.plot(self.expert[:, 3], 'c')
+        plt.subplot(321)
+        plt.plot(self.expert[:, 0], 'b')
         plt.ylabel('Transmission Pressure Difference ')
-        plt.subplot(212)
-        plt.plot(self.expert[:, 2], 'r')
-        # plt.plot(self.expert[:, 4], 'm')
+        plt.subplot(322)
+        plt.plot(self.expert[:, 1], 'r')
         plt.ylabel('Telescope Pressure')
+        plt.subplot(323)
+        plt.plot(self.expert[:, 2], 'm')
+        plt.ylabel('Boom Angle')
+        plt.subplot(324)
+        plt.plot(self.expert[:, 3], 'm')
+        plt.ylabel('Bucket angle')
+        # plt.subplot(325)
+        # plt.plot(self.expert[:, 4], 'm')
+        # plt.ylabel('vx')
+        # plt.subplot(326)
+        # plt.plot(self.expert[:, 5], 'm')
+        # plt.ylabel('angle position')
         plt.xlabel('time')
         plt.show()
 
     def stages(self):
         self.X = self.expert
-        i = round(self.T/(2*self.n_clusters))
         cluster_centers = self.set_cluster_centers()
         cluster_centers = np.array(cluster_centers)
         clusters = KMeans(n_clusters=self.n_clusters, init=cluster_centers).fit(self.X)
@@ -106,13 +116,15 @@ class UPR:
         self.reward = 0
 
     def step_classifier(self):
-        self.clf = SVC()
+        self.clf = KNeighborsClassifier()
         self.clf.fit(self.X, self.y)
 
     def get_intermediate_reward(self, state):
         n = len(state)-1
         segment = self.clf.predict([state])[0]
         expert_t = self.the_stages[segment]
+        if (segment+1<self.n_clusters):
+            expert_t = self.the_stages[segment+1]
         mu_t = expert_t[0]
         sigma_t = expert_t[1]
         summed = 0
@@ -123,7 +135,7 @@ class UPR:
             else:
                 continue
         # reward_t = n/summed
-        reward_t = 10 - summed
+        reward_t = 100 - summed
         return reward_t, segment
 
     def combine_reward(self, reward_i, segment, time):
@@ -131,7 +143,9 @@ class UPR:
         #     self.reward -= time*100
 
         if segment>0:
-            self.reward += reward_i*pow(2, segment-1)
+            # self.reward += reward_i*pow(2, segment-1)
+            self.reward = reward_i * pow(2, segment - 1)
+
 
 
 
