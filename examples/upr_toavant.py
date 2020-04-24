@@ -31,14 +31,14 @@ def training_test_split(X):
 
 def read_depth(file):
     time = file.split('/')[2].split('.csv')[0]
-    folder = file.split('/')[0]+'/'+file.split('/')[1]+'/'
+    folder = file.split('/')[0]+'/'+file.split('/')[1]+'_depth/'
     depth_file = folder+time + ".svo-depth.txt"
     f = open(depth_file, "r")
     i = 0
     depth = []
     for x in f:
         x = x.split()
-        if x[0] != '#' and len(x) == 30:
+        if x[0] != '#' and len(x) == 30 and i>35:
             diff = float(x[2])-float(x[20])
             depth.append(diff)
         i += 1
@@ -114,14 +114,14 @@ def test(upr, files):
         one_file(upr, file)
 
 
-# file_paths = get_file_paths(["data/autumn", "data/winter"])
-# X_train, X_test = training_test_split(file_paths)
-# upr = UPR(X_train, n_clusters=3)
-# test(upr, X_test)
+file_paths = get_file_paths(["data/autumn", "data/winter"])
+X_train, X_test = training_test_split(file_paths)
+upr = UPR(X_train, n_clusters=3)
+test(upr, X_test)
 
-upr = UPR(["data/autumn/19-17-30.csv"], n_clusters=3)
-file = "data/autumn/19-16-10.csv"
-one_file(upr, file)
+# upr = UPR(["data/autumn/19-17-30.csv"], n_clusters=3)
+# file = "data/autumn/19-16-10.csv"
+# one_file(upr, file)
 
 # X_train = get_file_paths(["data/autumn"])
 # X_test = get_file_paths(["data/winter"])

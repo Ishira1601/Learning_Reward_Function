@@ -37,7 +37,7 @@ class UPR:
                 for row in csv_reader:
                     if (len(depth) > i):
                         observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                                      float(row[71]), float(row[72]),depth[i]] #, float(row[62]), float(row[74])]
+                                      float(row[71]), float(row[72]), depth[i]] #, float(row[62]), float(row[74])]
                         # observation = [k, i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
                         d = len(observation)
                         self.demonstrations.append(observation)
@@ -60,9 +60,9 @@ class UPR:
         plt.subplot(324)
         plt.plot(self.expert[:, 3], 'm')
         plt.ylabel('Bucket angle')
-        # plt.subplot(325)
-        # plt.plot(self.expert[:, 4], 'm')
-        # plt.ylabel('vx')
+        plt.subplot(325)
+        plt.plot(self.expert[:, 4], 'g')
+        plt.ylabel('depth')
         # plt.subplot(326)
         # plt.plot(self.expert[:, 5], 'm')
         # plt.ylabel('angle position')
@@ -71,20 +71,18 @@ class UPR:
 
     def read_depth(self, file):
         time = file.split('/')[2].split('.csv')[0]
-        folder = file.split('/')[0] + '/' + file.split('/')[1] + '/'
+        folder = file.split('/')[0] + '/' + file.split('/')[1] + '_depth/'
         depth_file = folder + time + ".svo-depth.txt"
         f = open(depth_file, "r")
         i = 0
         depth = []
         for x in f:
             x = x.split()
-            if x[0] != '#' and len(x) == 30:
+            if x[0] != '#' and len(x) == 30 and i>35:
                 diff = float(x[2]) - float(x[20])
                 depth.append(diff)
-                i += 1
-        plt.plot(depth)
-        plt.ylabel("depth / cm")
-        plt.show()
+            i += 1
+
         return depth
 
     def stages(self):
