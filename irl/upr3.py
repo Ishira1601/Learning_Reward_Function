@@ -23,24 +23,25 @@ class UPR:
         self.step_classifier()
         self.T = 0
 
-
     def load_data(self):
         d = 0
         k = 0
         for file in self.files:
             i = 0
+            depth = self.read_depth(file)
             # with open(file) as csv_file:
             #     row_count = sum(1 for line in csv_file)
             # if (row_count > 200 and row_count < 400):
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
-                    observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                                  float(row[71]), float(row[72])] #, float(row[62]), float(row[74])]
-                    # observation = [k, i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
-                    d = len(observation)
-                    self.demonstrations.append(observation)
-                    i += 1
+                    if (len(depth) > i):
+                        observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
+                                      float(row[71]), float(row[72]),depth[i]] #, float(row[62]), float(row[74])]
+                        # observation = [k, i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
+                        d = len(observation)
+                        self.demonstrations.append(observation)
+                        i += 1
             if k==0:
                 self.T = i
             k+=1
@@ -67,6 +68,24 @@ class UPR:
         # plt.ylabel('angle position')
         plt.xlabel('time')
         plt.show()
+
+    def read_depth(self, file):
+        time = file.split('/')[2].split('.csv')[0]
+        folder = file.split('/')[0] + '/' + file.split('/')[1] + '/'
+        depth_file = folder + time + ".svo-depth.txt"
+        f = open(depth_file, "r")
+        i = 0
+        depth = []
+        for x in f:
+            x = x.split()
+            if x[0] != '#' and len(x) == 30:
+                diff = float(x[2]) - float(x[20])
+                depth.append(diff)
+                i += 1
+        plt.plot(depth)
+        plt.ylabel("depth / cm")
+        plt.show()
+        return depth
 
     def stages(self):
         self.X = self.expert
@@ -145,6 +164,8 @@ class UPR:
         if segment>0:
             # self.reward += reward_i*pow(2, segment-1)
             self.reward = reward_i * pow(2, segment - 1)
+        else:
+            self.reward = 0
 
 
 

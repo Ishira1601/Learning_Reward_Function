@@ -32,21 +32,17 @@ def training_test_split(X):
 def read_depth(file):
     time = file.split('/')[2].split('.csv')[0]
     folder = file.split('/')[0]+'/'+file.split('/')[1]+'/'
-    print("Butterfly Wings ", time)
     depth_file = folder+time + ".svo-depth.txt"
-    print("Lion paws ", depth_file)
     f = open(depth_file, "r")
     i = 0
     depth = []
     for x in f:
-        if(i>31):
-            x = x.split()
+        x = x.split()
+        if x[0] != '#' and len(x) == 30:
             diff = float(x[2])-float(x[20])
             depth.append(diff)
         i += 1
-    plt.plot(depth)
-    plt.ylabel("depth / cm")
-    plt.show()
+
     return depth
 
 def one_file(upr, file):
@@ -65,7 +61,7 @@ def one_file(upr, file):
         for row in csv_reader:
             if (len(depth)>i):
                 observation = [abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                              float(row[71]), float(row[72])]#, float(row[62]), float(row[74])]
+                              float(row[71]), float(row[72]), depth[i]]#, float(row[62]), float(row[74])]
                 # observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
                 reward_i, segment = upr.get_intermediate_reward(observation)
 
@@ -82,27 +78,30 @@ def one_file(upr, file):
             i += 1
 
     demonstrations = np.array(demonstrations)
-    plt.subplot(321)
+    plt.subplot(421)
     plt.title(file)
     plt.plot(demonstrations[:, 0], 'b')
     plt.ylabel('Transmission Pressure Difference ')
-    plt.subplot(322)
+    plt.subplot(422)
     plt.plot(demonstrations[:, 1], 'r')
     plt.ylabel('Telescope Pressure')
-    plt.subplot(323)
+    plt.subplot(423)
     plt.plot(demonstrations[:, 2], 'm')
     plt.ylabel('Boom Angle')
-    plt.subplot(324)
+    plt.subplot(424)
     plt.plot(demonstrations[:, 3], 'm')
     plt.ylabel('Bucket angle')
 
-    plt.subplot(325)
+    plt.subplot(427)
     plt.plot(segments)
     plt.ylabel("segment")
     plt.xlabel('time')
 
+    plt.subplot(425)
+    plt.plot(depth, 'g')
+    plt.ylabel("depth / cm")
 
-    plt.subplot(326)
+    plt.subplot(428)
     plt.plot(reward_function)
     plt.ylabel('reward')
     plt.xlabel('time')
@@ -120,8 +119,8 @@ def test(upr, files):
 # upr = UPR(X_train, n_clusters=3)
 # test(upr, X_test)
 
-upr = UPR(["data/autumn/19-01-52.csv"], n_clusters=3)
-file = "data/autumn/18-54-34.csv"
+upr = UPR(["data/autumn/19-17-30.csv"], n_clusters=3)
+file = "data/autumn/19-16-10.csv"
 one_file(upr, file)
 
 # X_train = get_file_paths(["data/autumn"])
