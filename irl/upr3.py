@@ -16,6 +16,7 @@ class UPR:
         self.expert = []
         self.y = []
         self.X = []
+        self.data = []
         self.load_data()
         self.the_stages = []
         self.n_clusters = n_clusters
@@ -29,45 +30,35 @@ class UPR:
         for file in self.files:
             i = 0
             depth = self.read_depth(file)
+            distance_travelled = self.get_distance_travelled(file)
             # with open(file) as csv_file:
             #     row_count = sum(1 for line in csv_file)
             # if (row_count > 200 and row_count < 400):
+            observations = []
+            all_data = []
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
+                    distance_to_pile = distance_travelled[-1]-distance_travelled[i]
                     if (len(depth) > i):
                         observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
                                       float(row[71]), float(row[72]), depth[i]] #, float(row[62]), float(row[74])]
                         # observation = [k, i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
                         d = len(observation)
-                        self.demonstrations.append(observation)
+                        observations.append(observation)
                         i += 1
+                    data = [float(m) for m in row]
+                    all_data.append(data)
+                # self.plot_all(all_data)
+            self.data.append(observations)
+            self.demonstrations = self.demonstrations + observations
             if k==0:
                 self.T = i
+
             k+=1
 
         self.demonstrations = np.array(self.demonstrations)
         self.expert = self.demonstrations[:, 1:d]
-        plt.subplot(321)
-        plt.plot(self.expert[:, 0], 'b')
-        plt.ylabel('Transmission Pressure Difference ')
-        plt.subplot(322)
-        plt.plot(self.expert[:, 1], 'r')
-        plt.ylabel('Telescope Pressure')
-        plt.subplot(323)
-        plt.plot(self.expert[:, 2], 'm')
-        plt.ylabel('Boom Angle')
-        plt.subplot(324)
-        plt.plot(self.expert[:, 3], 'm')
-        plt.ylabel('Bucket angle')
-        plt.subplot(325)
-        plt.plot(self.expert[:, 4], 'g')
-        plt.ylabel('depth')
-        # plt.subplot(326)
-        # plt.plot(self.expert[:, 5], 'm')
-        # plt.ylabel('angle position')
-        plt.xlabel('time')
-        plt.show()
 
     def read_depth(self, file):
         time = file.split('/')[2].split('.csv')[0]
@@ -76,23 +67,114 @@ class UPR:
         f = open(depth_file, "r")
         i = 0
         depth = []
+        vals = []
         for x in f:
             x = x.split()
             if x[0] != '#' and len(x) == 30 and i>35:
-                diff = float(x[2]) - float(x[20])
-                depth.append(diff)
+                # diff = abs(float(x[2]) - float(x[20])) + abs(float(x[19]) - float(x[13]))
+                # diff = diff / 2
+                # depth.append(diff)
+                vals.append([float(i) for i in x])
+                depth.append(float(x[17]))
             i += 1
+        # vals = np.array(vals)
+        # for j in range(30):
+        #     plt.subplot(6, 5, j+1)
+        #     plt.title(j)
+        #     plt.plot(vals[:, j])
+        # plt.show()
 
         return depth
 
+    def get_distance_travelled(self, file):
+        with open(file) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            distance = [0.0]
+            for row in csv_reader:
+                distance.append(distance[-1]+float(row[62]))
+        return distance
+
+
+    def plot_data(self, data, main_title= "Training", title="", cluster_centers=np.zeros((1)), js=[]):
+        row = 3
+        col = 2
+        plt.subplot(row, col, 1)
+        plt.title(main_title)
+        plt.plot(data[:, 0], 'b')
+        if cluster_centers.any():
+            plt.plot(js, cluster_centers[:, 0], 'r*')
+        plt.ylabel('Transmission Pressure Difference ')
+
+        plt.subplot(row, col, 2)
+        plt.title(title)
+        plt.plot(data[:, 1], 'b')
+        if cluster_centers.any():
+            plt.plot(js, cluster_centers[:, 1], 'r*')
+        plt.ylabel('Telescope Pressure')
+
+        plt.subplot(row, col, 3)
+        plt.plot(data[:, 2], 'm')
+        if cluster_centers.any():
+            plt.plot(js, cluster_centers[:, 2], 'r*')
+        plt.ylabel('Boom Angle')
+
+        plt.subplot(row, col, 4)
+        plt.plot(data[:, 3], 'm')
+        if cluster_centers.any():
+            plt.plot(js, cluster_centers[:, 3], 'r*')
+        plt.ylabel('Bucket angle')
+
+        plt.subplot(row, col, 5)
+        plt.plot(data[:, 4], 'g')
+        if cluster_centers.any():
+            plt.plot(js, cluster_centers[:, 4], 'r*')
+        plt.ylabel('Distance to pile')
+
+
+        plt.subplot(row, col, 6)
+        plt.plot(data[:, -1])
+        plt.ylabel('segment')
+
+        plt.xlabel('time')
+        plt.show()
+
+    def plot_all(self, all_data):
+        all_data = np.array(all_data)
+        for i in range(30):
+            plt.subplot(5, 6, i+1)
+            plt.title(i)
+            plt.plot(all_data[:, i])
+        plt.show()
+        plt.figure()
+        for i in range(30):
+            plt.subplot(5, 6, i + 1)
+            plt.title(i+30)
+            plt.plot(all_data[:, i+30])
+        plt.show()
+        plt.figure()
+        for i in range(20):
+            plt.subplot(4, 5, i + 1)
+            plt.title(i+60)
+            plt.plot(all_data[:, i+60])
+        plt.show()
+
     def stages(self):
         self.X = self.expert
-        cluster_centers = self.set_cluster_centers()
+        cluster_centers, js = self.set_cluster_centers()
         cluster_centers = np.array(cluster_centers)
         clusters = KMeans(n_clusters=self.n_clusters, init=cluster_centers).fit(self.X)
+        n = self.expert.shape[0]
         self.y = clusters.labels_
-        plt.plot(self.y)
-        plt.show()
+        y = np.array(self.y).reshape((n, 1))
+        # a = 0
+        # for i in range(len(self.data)):
+        #     b = a + len(self.data[i])
+        #     only_data = np.array(self.data[i])
+        #     only_labels = y[a:b, :]
+        #     data = np.hstack((only_data, only_labels))
+        #     data = np.delete(data, 0, 1)
+        #     self.plot_data(data, "Training", self.files[i])
+        #     a = b
         self.to_stages(self.y)
 
     def set_cluster_centers(self):
@@ -100,11 +182,13 @@ class UPR:
         cluster_centers = []
         k = 1
         j = k * i
+        js= []
         while j<self.T:
             cluster_centers.append(self.expert[j])
+            js.append(j)
             k += 2
             j = k * i
-        return cluster_centers
+        return cluster_centers, js
 
 
     def to_stages(self, y):
