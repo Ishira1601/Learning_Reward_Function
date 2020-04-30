@@ -33,11 +33,7 @@ def one_file(upr, file):
     depth = upr.read_depth(file)
     segments = []
     reward_function = []
-    i =0
-    # with open(file) as csv_file:
-    #     row_count = sum(1 for line in csv_file)
-    #     print(row_count)
-    # if (row_count > 200 and row_count < 400):
+    i = 0
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         demonstrations =[]
@@ -80,19 +76,19 @@ def test(upr, files):
         one_file(upr, file)
 
 
-# file_paths = get_file_paths(["data/autumn", "data/winter"])
-# X_train, X_test = training_test_split(file_paths)
-# upr = UPR(X_train, n_clusters=3)
-# test(upr, X_test)
+file_paths = get_file_paths(["data/autumn", "data/winter"])
+X_train, X_test = training_test_split(file_paths)
+upr = UPR(X_train, n_clusters=3)
+test(upr, X_test)
 
 # upr = UPR(["data/autumn/19-17-30.csv"], n_clusters=3)
 # file = "data/autumn/19-16-10.csv"
 # one_file(upr, file)
 
-X_train = get_file_paths(["data/autumn"])
-X_test = get_file_paths(["data/winter"])
-upr = UPR(X_train, n_clusters=3)
-test(upr, X_test)
+# X_train = get_file_paths(["data/autumn"])
+# X_test = get_file_paths(["data/winter"])
+# upr = UPR(X_train, n_clusters=3)
+# test(upr, X_test)
 
 
 

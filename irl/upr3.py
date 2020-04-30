@@ -31,9 +31,6 @@ class UPR:
             i = 0
             depth = self.read_depth(file)
             distance_travelled = self.get_distance_travelled(file)
-            # with open(file) as csv_file:
-            #     row_count = sum(1 for line in csv_file)
-            # if (row_count > 200 and row_count < 400):
             observations = []
             all_data = []
             with open(file) as csv_file:
@@ -42,8 +39,7 @@ class UPR:
                     distance_to_pile = distance_travelled[-1]-distance_travelled[i]
                     if (len(depth) > i):
                         observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                                      float(row[71]), float(row[72]), depth[i]] #, float(row[62]), float(row[74])]
-                        # observation = [k, i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
+                                      float(row[71]), float(row[72]), depth[i]]
                         d = len(observation)
                         observations.append(observation)
                         i += 1
@@ -71,9 +67,6 @@ class UPR:
         for x in f:
             x = x.split()
             if x[0] != '#' and len(x) == 30 and i>35:
-                # diff = abs(float(x[2]) - float(x[20])) + abs(float(x[19]) - float(x[13]))
-                # diff = diff / 2
-                # depth.append(diff)
                 vals.append([float(i) for i in x])
                 depth.append(float(x[17]))
             i += 1
