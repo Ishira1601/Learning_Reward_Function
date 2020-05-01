@@ -27,7 +27,7 @@ def training_test_split(X):
             X_train.append(x)
         else:
             X_test.append(x)
-    return  X_train, X_test
+    return X_train, X_test
 
 def one_file(upr, file):
     depth = upr.read_depth(file)
@@ -61,34 +61,81 @@ def one_file(upr, file):
     demonstrations = np.array(demonstrations)
     segments = np.array(segments).reshape((len(segments), 1))
     data = np.hstack((demonstrations, segments))
-    upr.plot_data(data, "Testing", file)
+    # upr.plot_data(data, "Testing", file)
+    #
+    # plt.plot(reward_function)
+    # plt.ylabel('reward')
+    # plt.xlabel('time')
+    # plt.title(file)
+    #
+    # plt.show()
 
-    plt.plot(reward_function)
-    plt.ylabel('reward')
-    plt.xlabel('time')
-    plt.title(file)
+    reward_function = np.array(reward_function).reshape((len(reward_function), 1))
+    data = np.hstack((data, reward_function))
+    return data
 
+def plot_all_data(all_data, files):
+    row = 10
+    if len(all_data)<10:
+        row = len(all_data)
+    col = 7
+    j = 0
+    plt.figure()
+    for k in range(row):
+        for i in range(col):
+            place = j + i + 1
+            plt.subplot(row, col, place)
+            colour = "b-"
+            if (i == 2 or i == 3):
+                colour = "m-"
+            if (i == 4):
+                colour = "g-"
+            if (i == 6):
+                colour = "r-"
+
+            plt.plot(all_data[k][:, i], colour)
+            if j == 0:
+                if (i == 0):
+                    plt.title("Transmission")
+                elif (i == 1):
+                    plt.title("Telescope")
+                elif (i == 2):
+                    plt.title("Boom")
+                elif (i == 3):
+                    plt.title("Bucket")
+                elif (i == 4):
+                    plt.title("Depth")
+                elif (i == 5):
+                    plt.title("Segment")
+                elif (i == 6):
+                    plt.title("Reward")
+            if i == 0:
+                plt.ylabel(files[k].split('/')[1])
+        j += col
     plt.show()
 
+
 def test(upr, files):
+    all_data = []
     for file in files:
         upr.reset()
-        one_file(upr, file)
+        data = one_file(upr, file)
+        all_data.append(data)
+    plot_all_data(all_data, files)
 
-
-file_paths = get_file_paths(["data/autumn", "data/winter"])
-X_train, X_test = training_test_split(file_paths)
-upr = UPR(X_train, n_clusters=3)
-test(upr, X_test)
+# file_paths = get_file_paths(["data/autumn", "data/winter"])
+# X_train, X_test = training_test_split(file_paths)
+# upr = UPR(X_train, n_clusters=3)
+# test(upr, X_test)
 
 # upr = UPR(["data/autumn/19-17-30.csv"], n_clusters=3)
 # file = "data/autumn/19-16-10.csv"
 # one_file(upr, file)
 
-# X_train = get_file_paths(["data/autumn"])
-# X_test = get_file_paths(["data/winter"])
-# upr = UPR(X_train, n_clusters=3)
-# test(upr, X_test)
+X_train = get_file_paths(["data/winter"])
+X_test = get_file_paths(["data/autumn"])
+upr = UPR(X_train, n_clusters=3)
+test(upr, X_test)
 
 
 
