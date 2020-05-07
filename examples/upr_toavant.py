@@ -46,7 +46,7 @@ def one_file(upr, file):
         for row in csv_reader:
             if (len(depth)>i):
                 # distance_to_pile = distance_travelled[-1] - distance_travelled[i]
-                observation = [abs(float(row[sensor[0]])-float(row[sensor[1]]))/100, float(row[sensor[2]]),
+                observation = [float(row[sensor[2]]),
                               float(row[sensor[3]]), float(row[sensor[4]]), depth[i]]
                 reward_i, segment = upr.get_intermediate_reward(observation)
 
@@ -83,7 +83,7 @@ def plot_all_data(all_data, files):
     row = 10
     if len(all_data)<10:
         row = len(all_data)
-    col = 7
+    col = 6
     j = 0
     plt.figure()
     for k in range(row):
@@ -91,29 +91,28 @@ def plot_all_data(all_data, files):
             place = j + i + 1
             plt.subplot(row, col, place)
             colour = "b-"
-            if (i == 2 or i == 3):
+            if (i == 2 or i == 1):
                 colour = "m-"
-            if (i == 4):
+            if (i == 3):
                 colour = "g-"
-            if (i == 6):
+            if (i == 5):
                 colour = "r-"
 
             plt.plot(all_data[k][:, i], colour)
             if j == 0:
                 if (i == 0):
-                    plt.title("Transmission")
-                elif (i == 1):
                     plt.title("Telescope")
-                elif (i == 2):
+                elif (i == 1):
                     plt.title("Boom")
-                elif (i == 3):
+                elif (i == 2):
                     plt.title("Bucket")
-                elif (i == 4):
+                elif (i == 3):
                     plt.title("Depth")
-                elif (i == 5):
+                elif (i == 4):
                     plt.title("Segment")
-                elif (i == 6):
+                elif (i == 5):
                     plt.title("Reward")
+
             if i == 0:
                 plt.ylabel(files[k].split('/')[1])
         j += col
@@ -128,7 +127,7 @@ def test(upr, files):
         all_data.append(data)
     plot_all_data(all_data, files)
 
-file_paths = get_file_paths(["data/autumn", "data/winter", "data/summer"])
+file_paths = get_file_paths(["data/winter", "data/summer"])
 X_train, X_test = training_test_split(file_paths)
 upr = UPR(X_train, n_clusters=3)
 test(upr, X_test)
