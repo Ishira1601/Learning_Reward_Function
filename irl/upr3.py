@@ -30,22 +30,27 @@ class UPR:
         for file in self.files:
             i = 0
             depth = self.read_depth(file)
-            distance_travelled = self.get_distance_travelled(file)
+            # distance_travelled = self.get_distance_travelled(file)
             observations = []
             all_data = []
+            season = file.split("/")[1]
+            if season=="autumn" or season=="winter":
+                sensor = [35, 36, 27, 52, 53]
+            else:
+                sensor = [16, 17, 8, 34, 35]
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
-                    distance_to_pile = distance_travelled[-1]-distance_travelled[i]
+                    # distance_to_pile = distance_travelled[-1]-distance_travelled[i]
                     if (len(depth) > i):
-                        observation = [k, abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                                      float(row[71]), float(row[72]), depth[i]]
+                        observation = [k, abs(float(row[sensor[0]]) - float(row[sensor[1]])) / 100, float(row[sensor[2]]),
+                                       float(row[sensor[3]]), float(row[sensor[4]]), depth[i]]
                         d = len(observation)
                         observations.append(observation)
                         i += 1
                     data = [float(m) for m in row]
                     all_data.append(data)
-                # self.plot_all(all_data)
+                # self.plot_all(all_data, file)
             self.data.append(observations)
             self.demonstrations = self.demonstrations + observations
             if k==0:
@@ -66,10 +71,11 @@ class UPR:
         vals = []
         for x in f:
             x = x.split()
-            if x[0] != '#' and len(x) == 30 and i>35:
-                vals.append([float(i) for i in x])
-                depth.append(float(x[17]))
-            i += 1
+            if x[0] != '#' and len(x) == 30:
+                if i>5:
+                    vals.append([float(i) for i in x])
+                    depth.append(float(x[17]))
+                i += 1
         # vals = np.array(vals)
         # for j in range(30):
         #     plt.subplot(6, 5, j+1)
@@ -131,7 +137,8 @@ class UPR:
         plt.xlabel('time')
         plt.show()
 
-    def plot_all(self, all_data):
+    def plot_all(self, all_data, file):
+        plt.suptitle(file)
         all_data = np.array(all_data)
         for i in range(30):
             plt.subplot(5, 6, i+1)
@@ -139,12 +146,14 @@ class UPR:
             plt.plot(all_data[:, i])
         plt.show()
         plt.figure()
+        plt.suptitle(file)
         for i in range(30):
             plt.subplot(5, 6, i + 1)
             plt.title(i+30)
             plt.plot(all_data[:, i+30])
         plt.show()
         plt.figure()
+        plt.suptitle(file)
         for i in range(20):
             plt.subplot(4, 5, i + 1)
             plt.title(i+60)

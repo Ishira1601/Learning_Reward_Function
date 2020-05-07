@@ -34,28 +34,33 @@ def one_file(upr, file):
     segments = []
     reward_function = []
     i = 0
+    season = file.split("/")[1]
+    if season == "autumn" or season == "winter":
+        sensor = [35, 36, 27, 71, 72]
+    else:
+        sensor = [16, 17, 8, 1, 2]
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         demonstrations =[]
-        distance_travelled = upr.get_distance_travelled(file)
+        # distance_travelled = upr.get_distance_travelled(file)
         for row in csv_reader:
             if (len(depth)>i):
-                distance_to_pile = distance_travelled[-1] - distance_travelled[i]
-                observation = [abs(float(row[35])-float(row[36]))/100, float(row[27]),
-                              float(row[71]), float(row[72]), depth[i]]#, float(row[62]), float(row[74])]
-                # observation = [i, abs(float(row[35]) - float(row[36])) / 100, float(row[27])]
+                # distance_to_pile = distance_travelled[-1] - distance_travelled[i]
+                observation = [abs(float(row[sensor[0]])-float(row[sensor[1]]))/100, float(row[sensor[2]]),
+                              float(row[sensor[3]]), float(row[sensor[4]]), depth[i]]
                 reward_i, segment = upr.get_intermediate_reward(observation)
 
-                print(' pred: ', segment)
                 segments.append(segment)
 
-                print("intermediate reward: ", reward_i)
                 upr.combine_reward(reward_i, segment, i)
                 reward = upr.reward
-                print('step: ', i)
-                print('reward: ', reward)
                 reward_function.append(reward)
                 demonstrations.append(observation)
+
+                # print(' pred: ', segment)
+                # print("intermediate reward: ", reward_i)
+                # print('step: ', i)
+                # print('reward: ', reward)
             i += 1
 
     demonstrations = np.array(demonstrations)
@@ -123,19 +128,19 @@ def test(upr, files):
         all_data.append(data)
     plot_all_data(all_data, files)
 
-# file_paths = get_file_paths(["data/autumn", "data/winter"])
-# X_train, X_test = training_test_split(file_paths)
-# upr = UPR(X_train, n_clusters=3)
-# test(upr, X_test)
+file_paths = get_file_paths(["data/autumn", "data/winter", "data/summer"])
+X_train, X_test = training_test_split(file_paths)
+upr = UPR(X_train, n_clusters=3)
+test(upr, X_test)
 
 # upr = UPR(["data/autumn/19-17-30.csv"], n_clusters=3)
 # file = "data/autumn/19-16-10.csv"
 # one_file(upr, file)
 
-X_train = get_file_paths(["data/winter"])
-X_test = get_file_paths(["data/autumn"])
-upr = UPR(X_train, n_clusters=3)
-test(upr, X_test)
+# X_train = get_file_paths(["data/autumn"])
+# X_test = get_file_paths(["data/winter"])
+# upr = UPR(X_train, n_clusters=3)
+# test(upr, X_test)
 
 
 
