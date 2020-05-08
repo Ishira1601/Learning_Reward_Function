@@ -136,8 +136,13 @@ test(upr, X_test)
 # file = "data/autumn/19-16-10.csv"
 # one_file(upr, file)
 
-# X_train = get_file_paths(["data/autumn"])
+# X_train = get_file_paths(["data/summer"])
 # X_test = get_file_paths(["data/winter"])
+# upr = UPR(X_train, n_clusters=3)
+# test(upr, X_test)
+
+# X_train = get_file_paths(["data/winter"])
+# X_test = get_file_paths(["data/summer"])
 # upr = UPR(X_train, n_clusters=3)
 # test(upr, X_test)
 
