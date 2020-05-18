@@ -34,17 +34,33 @@ class UPR:
             observations = []
             all_data = []
             season = file.split("/")[1]
+            work_done = 0
+            a_A = 0.0020
+            a_B = 0.0012
+            alpha = (20 / 180) * 3.142
+            l = 1.35
+            a = 0.0016
             if season=="autumn" or season=="winter":
-                sensor = [35, 36, 27, 71, 72]
+                sensor = [35, 27, 28, 71, 72, 62, 15]
             else:
                 sensor = [16, 17, 8, 1, 2]
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
                     # distance_to_pile = distance_travelled[-1]-distance_travelled[i]
+
                     if (len(depth) > i):
-                        observation = [k, float(row[sensor[2]]),
-                                       float(row[sensor[3]]), float(row[sensor[4]]), depth[i]]
+                        P_A = float(row[sensor[1]])*100000
+                        P_B = float(row[sensor[2]])*100000
+                        F = a_A * P_A - a_B * P_B
+                        boom = float(row[sensor[3]])
+                        F_C = F * np.array([np.cos(boom + alpha), np.sin(boom + alpha)])
+                        vx = float(row[sensor[5]])
+                        boom_dot = float(row[sensor[6]])
+                        v_C = np.array([vx - l * boom_dot * np.sin(boom) + a, l * boom_dot * np.cos(boom) + a])
+                        work_done += abs(np.dot(F_C, v_C))/20
+                        observation = [k, work_done,
+                                       boom, float(row[sensor[4]]), depth[i]]
                         d = len(observation)
                         observations.append(observation)
                         i += 1

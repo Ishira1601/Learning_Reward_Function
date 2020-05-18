@@ -35,19 +35,35 @@ def one_file(upr, file):
     reward_function = []
     i = 0
     season = file.split("/")[1]
+    telescope_integrated = 0
+    work_done = 0
+    a_A = 0.0020
+    a_B = 0.0012
+    alpha = (20/180)*3.142
+    l = 1.35
+    a = 0.0016
     if season == "autumn" or season == "winter":
-        sensor = [35, 36, 27, 71, 72]
+        sensor = [35, 27, 28, 71, 72, 62, 15]
     else:
         sensor = [16, 17, 8, 1, 2]
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
-        demonstrations =[]
+        demonstrations = []
         # distance_travelled = upr.get_distance_travelled(file)
         for row in csv_reader:
             if (len(depth)>i):
                 # distance_to_pile = distance_travelled[-1] - distance_travelled[i]
-                observation = [float(row[sensor[2]]),
-                              float(row[sensor[3]]), float(row[sensor[4]]), depth[i]]
+                P_A = float(row[sensor[1]])*100000
+                P_B = float(row[sensor[2]])*100000
+                F = a_A*P_A-a_B*P_B
+                boom = float(row[sensor[3]])
+                F_C = F * np.array([np.cos(boom)+alpha, np.sin(boom)+alpha])
+                vx = float(row[sensor[5]])
+                boom_dot = float(row[sensor[6]])
+                v_C = np.array([vx-l*boom_dot*np.sin(boom)+a, l*boom_dot*np.cos(boom)+a])
+                work_done += abs(np.dot(F_C, v_C))/20
+                observation = [work_done,
+                               boom, float(row[sensor[4]]), depth[i]]
                 reward_i, segment = upr.get_intermediate_reward(observation)
 
                 segments.append(segment)
@@ -101,7 +117,7 @@ def plot_all_data(all_data, files):
             plt.plot(all_data[k][:, i], colour)
             if j == 0:
                 if (i == 0):
-                    plt.title("Telescope")
+                    plt.title("Workdone")
                 elif (i == 1):
                     plt.title("Boom")
                 elif (i == 2):
@@ -127,7 +143,7 @@ def test(upr, files):
         all_data.append(data)
     plot_all_data(all_data, files)
 
-file_paths = get_file_paths(["data/winter", "data/summer"])
+file_paths = get_file_paths(["data/winter"])
 X_train, X_test = training_test_split(file_paths)
 upr = UPR(X_train, n_clusters=3)
 test(upr, X_test)
