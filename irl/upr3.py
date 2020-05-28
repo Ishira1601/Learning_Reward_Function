@@ -30,37 +30,46 @@ class UPR:
         for file in self.files:
             i = 0
             depth = self.read_depth(file)
-            # distance_travelled = self.get_distance_travelled(file)
             observations = []
             all_data = []
             season = file.split("/")[1]
             work_done = 0
+            workdone_x = 0
+            workdone_y =0
             a_A = 0.0020
             a_B = 0.0012
             alpha = (20 / 180) * 3.142
             l = 1.35
             a = 0.0016
-            if season=="autumn" or season=="winter":
-                sensor = [35, 27, 28, 71, 72, 62, 15]
-            else:
-                sensor = [16, 17, 8, 1, 2]
+            prev_boom = 0
+
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
                     # distance_to_pile = distance_travelled[-1]-distance_travelled[i]
 
                     if (len(depth) > i):
-                        P_A = float(row[sensor[1]])*100000
-                        P_B = float(row[sensor[2]])*100000
+                        if season == "autumn" or season == "winter":
+                            P_A = float(row[27]) * 100000
+                            P_B = float(row[28]) * 100000
+                            boom = float(row[71])
+                            bucket = float(row[72])
+                            vx = float(row[62])
+                            l = float(row[21])
+
                         F = a_A * P_A - a_B * P_B
-                        boom = float(row[sensor[3]])
-                        F_C = F * np.array([np.cos(boom + alpha), np.sin(boom + alpha)])
-                        vx = float(row[sensor[5]])
-                        boom_dot = float(row[sensor[6]])
+                        F_C = F * np.array([np.cos(boom), np.sin(boom)])
+                        boom_dot = (boom - prev_boom) * 15
+                        prev_boom = boom
                         v_C = np.array([vx - l * boom_dot * np.sin(boom) + a, l * boom_dot * np.cos(boom) + a])
-                        work_done += abs(np.dot(F_C, v_C))/20
-                        observation = [k, work_done,
-                                       boom, float(row[sensor[4]]), depth[i]]
+                        work_done += abs(np.dot(F_C, v_C)) / 15
+                        workdone_x += abs(F_C[0] * v_C[0]) / 15
+                        workdone_y += abs(F_C[1] * v_C[1]) / 15
+                        F_Re = np.linalg.norm(F_C)
+                        v_Re = np.linalg.norm(v_C)
+
+                        observation = [k, work_done, workdone_x, workdone_y, F_C[0], F_C[1], v_C[0], v_C[1],
+                                       boom, bucket, depth[i]]
                         d = len(observation)
                         observations.append(observation)
                         i += 1
@@ -112,41 +121,47 @@ class UPR:
 
     def plot_data(self, data, main_title= "Training", title="", cluster_centers=np.zeros((1)), js=[]):
         row = 3
-        col = 2
+        col = 3
         plt.subplot(row, col, 1)
         plt.title(main_title)
         plt.plot(data[:, 0], 'b')
         if cluster_centers.any():
             plt.plot(js, cluster_centers[:, 0], 'r*')
-        plt.ylabel('Transmission Pressure Difference ')
+        plt.ylabel('Work done ')
 
         plt.subplot(row, col, 2)
         plt.title(title)
         plt.plot(data[:, 1], 'b')
         if cluster_centers.any():
             plt.plot(js, cluster_centers[:, 1], 'r*')
-        plt.ylabel('Telescope Pressure')
+        plt.ylabel('Workdone_x')
 
         plt.subplot(row, col, 3)
-        plt.plot(data[:, 2], 'm')
+        plt.plot(data[:, 2], 'b')
         if cluster_centers.any():
             plt.plot(js, cluster_centers[:, 2], 'r*')
-        plt.ylabel('Boom Angle')
+        plt.ylabel('Workdone_y')
 
         plt.subplot(row, col, 4)
         plt.plot(data[:, 3], 'm')
         if cluster_centers.any():
             plt.plot(js, cluster_centers[:, 3], 'r*')
-        plt.ylabel('Bucket angle')
+        plt.ylabel('Boom Angle')
 
         plt.subplot(row, col, 5)
-        plt.plot(data[:, 4], 'g')
+        plt.plot(data[:, 4], 'm')
         if cluster_centers.any():
             plt.plot(js, cluster_centers[:, 4], 'r*')
+        plt.ylabel('Bucket angle')
+
+        plt.subplot(row, col, 6)
+        plt.plot(data[:, 5], 'g')
+        if cluster_centers.any():
+            plt.plot(js, cluster_centers[:, 5], 'r*')
         plt.ylabel('Distance to pile')
 
 
-        plt.subplot(row, col, 6)
+        plt.subplot(row, col, 7)
         plt.plot(data[:, -1])
         plt.ylabel('segment')
 

@@ -35,35 +35,40 @@ def one_file(upr, file):
     reward_function = []
     i = 0
     season = file.split("/")[1]
-    telescope_integrated = 0
     work_done = 0
+    workdone_x = 0
+    workdone_y = 0
     a_A = 0.0020
     a_B = 0.0012
     alpha = (20/180)*3.142
-    l = 1.35
     a = 0.0016
-    if season == "autumn" or season == "winter":
-        sensor = [35, 27, 28, 71, 72, 62, 15]
-    else:
-        sensor = [16, 17, 8, 1, 2]
+    prev_boom = 0
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         demonstrations = []
         # distance_travelled = upr.get_distance_travelled(file)
         for row in csv_reader:
             if (len(depth)>i):
-                # distance_to_pile = distance_travelled[-1] - distance_travelled[i]
-                P_A = float(row[sensor[1]])*100000
-                P_B = float(row[sensor[2]])*100000
+                if season == "autumn" or season == "winter":
+                    P_A = float(row[27])*100000
+                    P_B = float(row[28])*100000
+                    boom = float(row[71])
+                    bucket = float(row[72])
+                    vx = float(row[62])
+                    l = float(row[21])
+
                 F = a_A*P_A-a_B*P_B
-                boom = float(row[sensor[3]])
-                F_C = F * np.array([np.cos(boom)+alpha, np.sin(boom)+alpha])
-                vx = float(row[sensor[5]])
-                boom_dot = float(row[sensor[6]])
+                F_C = F * np.array([np.cos(boom), np.sin(boom)])
+                boom_dot = (boom - prev_boom) * 15
+                prev_boom = boom
                 v_C = np.array([vx-l*boom_dot*np.sin(boom)+a, l*boom_dot*np.cos(boom)+a])
-                work_done += abs(np.dot(F_C, v_C))/20
-                observation = [work_done,
-                               boom, float(row[sensor[4]]), depth[i]]
+                work_done += abs(np.dot(F_C, v_C))/15
+                workdone_x += abs(F_C[0] * v_C[0])/15
+                workdone_y += abs(F_C[1] * v_C[1])/15
+                F_Re = np.linalg.norm(F_C)
+                v_Re = np.linalg.norm(v_C)
+                observation = [work_done, workdone_x, workdone_y, F_C[0], F_C[1], v_C[0], v_C[1],
+                               boom, bucket, depth[i]]
                 reward_i, segment = upr.get_intermediate_reward(observation)
 
                 segments.append(segment)
@@ -99,7 +104,7 @@ def plot_all_data(all_data, files):
     row = 10
     if len(all_data)<10:
         row = len(all_data)
-    col = 6
+    col = all_data[0].shape[1]
     j = 0
     plt.figure()
     for k in range(row):
@@ -107,26 +112,38 @@ def plot_all_data(all_data, files):
             place = j + i + 1
             plt.subplot(row, col, place)
             colour = "b-"
-            if (i == 2 or i == 1):
+            if (i == 3 or i == 4 or i == 7 or i == 8):
                 colour = "m-"
-            if (i == 3):
+            if (i == 5 or i == 6 or i == 9):
                 colour = "g-"
-            if (i == 5):
+            if (i == 11):
                 colour = "r-"
 
             plt.plot(all_data[k][:, i], colour)
             if j == 0:
                 if (i == 0):
-                    plt.title("Workdone")
+                    plt.title("Work")
                 elif (i == 1):
-                    plt.title("Boom")
+                    plt.title("Work-x")
                 elif (i == 2):
-                    plt.title("Bucket")
+                    plt.title("Work-y")
                 elif (i == 3):
-                    plt.title("Depth")
+                    plt.title("Force-x")
                 elif (i == 4):
-                    plt.title("Segment")
+                    plt.title("Force-y")
                 elif (i == 5):
+                    plt.title("Vel-x")
+                elif (i == 6):
+                    plt.title("Vel-y")
+                elif (i == 7):
+                    plt.title("Boom")
+                elif (i == 8):
+                    plt.title("Bucket")
+                elif (i == 9):
+                    plt.title("Depth")
+                elif (i == 10):
+                    plt.title("Segment")
+                elif (i == 11):
                     plt.title("Reward")
 
             if i == 0:
