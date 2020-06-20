@@ -1,5 +1,5 @@
 import numpy as np
-from irl.upr import UPR
+from irl.upr_mc import UPR
 import gym
 from q_learning import QAgent
 import matplotlib.pyplot as plt

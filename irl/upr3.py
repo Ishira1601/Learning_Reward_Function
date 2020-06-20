@@ -50,12 +50,19 @@ class UPR:
 
                     if (len(depth) > i):
                         if season == "autumn" or season == "winter":
-                            P_A = float(row[27]) * 100000
-                            P_B = float(row[28]) * 100000
+                            P_A = float(row[28]) * 100000
+                            P_B = float(row[27]) * 100000
                             boom = float(row[71])
                             bucket = float(row[72])
                             vx = float(row[62])
                             l = float(row[21])
+                        if season == "summer":
+                            P_A = float(row[9]) * 100000
+                            P_B = float(row[8]) * 100000
+                            boom = float(row[1])
+                            bucket = float(row[2])
+                            vx = 0.0
+                            l = float(row[3])
 
                         F = a_A * P_A - a_B * P_B
                         F_C = F * np.array([np.cos(boom), np.sin(boom)])
@@ -68,8 +75,8 @@ class UPR:
                         F_Re = np.linalg.norm(F_C)
                         v_Re = np.linalg.norm(v_C)
 
-                        observation = [k, work_done, workdone_x, workdone_y, F_C[0], F_C[1], v_C[0], v_C[1],
-                                       boom, bucket, depth[i]]
+                        observation = [k, F, P_A, P_B, F_C[0], F_C[1], v_C[0], v_C[1],
+                           boom, bucket, l]
                         d = len(observation)
                         observations.append(observation)
                         i += 1
@@ -262,7 +269,7 @@ class UPR:
         mu_t = expert_t[0]
         sigma_t = expert_t[1]
         summed = 0
-        for j in range(n):
+        for j in range(7, n):
             dist = (np.square(state[j] - mu_t[j])) / np.square(sigma_t[j])
             if not math.isnan(dist) and not math.isinf(dist):
                 summed = summed + dist
