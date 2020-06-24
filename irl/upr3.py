@@ -39,9 +39,11 @@ class UPR:
             a_A = 0.0020
             a_B = 0.0012
             alpha = (20 / 180) * 3.142
-            l = 1.35
+            l = 1.5
             a = 0.0016
             prev_boom = 0
+            prev_depth = 1.5
+            F0 = 0
 
             with open(file) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
@@ -61,10 +63,14 @@ class UPR:
                             P_B = float(row[8]) * 100000
                             boom = float(row[1])
                             bucket = float(row[2])
-                            vx = 0.0
+                            vx = (depth[i] - prev_depth)
+                            prev_depth = depth[i]
                             l = float(row[3])
 
                         F = a_A * P_A - a_B * P_B
+                        if i == 0:
+                            F0 = F
+                        F -= F0
                         F_C = F * np.array([np.cos(boom), np.sin(boom)])
                         boom_dot = (boom - prev_boom) * 15
                         prev_boom = boom
@@ -75,8 +81,8 @@ class UPR:
                         F_Re = np.linalg.norm(F_C)
                         v_Re = np.linalg.norm(v_C)
 
-                        observation = [k, F, P_A, P_B, F_C[0], F_C[1], v_C[0], v_C[1],
-                           boom, bucket, l]
+                        observation = [k, work_done,
+                           boom, bucket, depth[i]]
                         d = len(observation)
                         observations.append(observation)
                         i += 1
@@ -269,7 +275,7 @@ class UPR:
         mu_t = expert_t[0]
         sigma_t = expert_t[1]
         summed = 0
-        for j in range(7, n):
+        for j in range(n):
             dist = (np.square(state[j] - mu_t[j])) / np.square(sigma_t[j])
             if not math.isnan(dist) and not math.isinf(dist):
                 summed = summed + dist

@@ -43,6 +43,9 @@ def one_file(upr, file):
     alpha = (20/180)*3.142
     a = 0.0016
     prev_boom = 0
+    prev_depth = 1.5
+    l = 1.5
+    F0 = 0
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         demonstrations = []
@@ -61,9 +64,13 @@ def one_file(upr, file):
                     P_B = float(row[8]) * 100000
                     boom = float(row[1])
                     bucket = float(row[2])
-                    vx = 0.0
+                    vx = (depth[i] - prev_depth) * 15
+                    prev_depth = depth[i]
                     l = float(row[3])
                 F = a_A*P_A-a_B*P_B
+                if i == 0:
+                    F0 = F
+                F -= F0
                 F_C = F * np.array([np.cos(boom), np.sin(boom)])
                 boom_dot = (boom - prev_boom) * 15
                 prev_boom = boom
@@ -73,8 +80,8 @@ def one_file(upr, file):
                 workdone_y += abs(F_C[1] * v_C[1])/15
                 F_Re = np.linalg.norm(F_C)
                 v_Re = np.linalg.norm(v_C)
-                observation = [F, P_A, P_B, F_C[0], F_C[1], v_C[0], v_C[1],
-                           boom, bucket, l]
+                observation = [work_done,
+                           boom, bucket, depth[i]]
                 reward_i, segment = upr.get_intermediate_reward(observation)
 
                 segments.append(segment)
@@ -118,35 +125,35 @@ def plot_all_data(all_data, files):
             place = j + i + 1
             plt.subplot(row, col, place)
             colour = "b-"
-            if (i == 3 or i == 4 or i == 7 or i == 8):
+            if (i == 1 or i == 2):
                 colour = "m-"
-            if (i == 5 or i == 6 or i == 9):
+            if (i == 3):
                 colour = "g-"
-            if (i == 11):
+            if (i == 5):
                 colour = "r-"
 
             plt.plot(all_data[k][:, i], colour)
             if j == 0:
                 if (i == 0):
-                    plt.title("aAPA - aBPB")
+                    plt.title("Work done")
                 elif (i == 1):
-                    plt.title("P_A")
-                elif (i == 2):
-                    plt.title("P_B")
-                elif (i == 3):
-                    plt.title("Force-x")
-                elif (i == 4):
-                    plt.title("Force-y")
-                elif (i == 5):
-                    plt.title("Vel-x")
-                elif (i == 6):
-                    plt.title("Vel-y")
-                elif (i == 7):
                     plt.title("Boom")
-                elif (i == 8):
+                elif (i == 2):
                     plt.title("Bucket")
-                elif (i == 9):
-                    plt.title("Length")
+                elif (i == 3):
+                    plt.title("Distance")
+                elif (i == 4):
+                    plt.title("Segment")
+                elif (i == 5):
+                    plt.title("Reward")
+                # elif (i == 6):
+                #     plt.title("Vel-y")
+                # elif (i == 7):
+                #     plt.title("Boom")
+                # elif (i == 8):
+                #     plt.title("Bucket")
+                # elif (i == 9):
+                #     plt.title("Length")
 
             if i == 0:
                 plt.ylabel(files[k].split('/')[1])
@@ -162,7 +169,7 @@ def test(upr, files):
         all_data.append(data)
     plot_all_data(all_data, files)
 
-file_paths = get_file_paths(["data/winter", "data/summer"])
+file_paths = get_file_paths(["data/winter"])
 X_train, X_test = training_test_split(file_paths)
 upr = UPR(X_train, n_clusters=3)
 test(upr, X_test)
